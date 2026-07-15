@@ -29,8 +29,11 @@
 #define TILE_BG_DARK 1
 #define TILE_BG_LIGHT 2
 #define TILE_BLANK 16
+#define PATTERN_TOTAL 2
 unsigned char grid[32][24];
 unsigned char newGenGrid[32][24];
+unsigned char prevGenGrid[32][24];
+unsigned char bgGrid[32][24];
 char buffer[8];
 int newstate = 0;
 int gamestate = 1;
@@ -45,29 +48,30 @@ typedef struct {
 } options;
 options op;
 
-
-
 // Functions Prototypes //
 int rand_num(int lb, int ub);
+void fontLoad(int bg0, int bg1);
 //void spriteLoad(void);
 void bgLoad(void);
 void bgBlank(void);
-void gridInit(void);
-void gridDraw(void);
-void fontLoad(int bg0, int bg1);
-char intToString(int number);
 
-void cellScanGrid(void);
+void gridInit(int pattern);
+void gridGen(void);
+void gridDrawFull(void);
+void gridDrawCell(int x, int y);
+void gridScan(void);
+void gridDrawBorders(void);
+
 void cellDraw(int x, int y);
-int cellCheckNeighboor(int x, int y, int cellStatus);
-int cellCountAlive(void);
+int  cellCheckNeighboor(int x, int y, int cellStatus);
+int  cellCountAlive(void);
+
 void generationProc(void);
 
 void controllerCheck(void);
 
 void statsRender(int alive);
 void titleScreenRender(void);
-
 
 // sprite stuff //
 /*void spriteLoad(void) {
@@ -97,40 +101,94 @@ void fontLoad(int bg0, int bg1) {
 }
 
 // grid functions //
-void gridInit(void) {
-    int cell = 0;
-    for(int x = 0; x <= MAPW; x++) { 
-        for(int y = 0; y <= MAPH; y++) { 
-            cell = rand_num(1,5);
-            if(cell == 1) { 
-                grid[x][y] = 1;
+void gridInit(int pattern) {
+
+    // half: x:15 / y:11 //
+
+    // random //
+    if(pattern == 0) { 
+        int cell = 0;
+        for(int x = 2; x <= MAPW - 1; x++) { 
+            for(int y = 1; y <= MAPH - 1; y++) { 
+                cell = rand_num(1,5);
+                if(cell == 1) { 
+                    grid[x][y] = 1;
+                }
             }
         }
     }
+
+    // blinker // 
+    if(pattern == 1) { 
+        grid[15][11] = 1;
+        grid[15][12] = 1;
+        grid[15][13] = 1;
+    }
+
+    // glider //
+    if(pattern == 2) { 
+        grid[3][1] = 1;
+        grid[4][2] = 1;
+        grid[2][3] = 1;
+        grid[3][3] = 1;
+        grid[4][3] = 1;
+    }
+
 }
 
-void gridDraw(void) {
+void gridGen(void) {
     int i = TILE_BG_DARK;
-    for(int x = 0; x <= 32; x++) {
-        for(int y = 0; y <= 24; y++) {
-            SMS_setTileatXY(x,y,i);
+    for(int x = 2; x <= MAPW -1; x++) {
+        if(x % 2 == 0) { i = TILE_BG_LIGHT; } else { i = TILE_BG_DARK; }
+        for(int y = 1; y <= MAPH -1; y++) {
+            //SMS_setTileatXY(x,y,i);
+            bgGrid[x][y] = i;
             i++;
             if(i == TILE_BG_LIGHT + 1) { i = TILE_BG_DARK; }
         }
     }
 }
 
-// cell functions //
-void cellScanGrid(void) {
-    for(int x = 0; x <= MAPW; x++) { 
-        for(int y = 0; y <= MAPH; y++) { 
-            if(grid[x][y] != 0) { 
-                cellDraw(x,y);
+void gridDrawFull(void) { 
+    gridDrawBorders();
+    for(int x = 2; x <= MAPW - 1; x++) {
+        for(int y = 1; y <= MAPH - 1; y++) {
+            int tile = bgGrid[x][y];
+            SMS_setTileatXY(x,y, tile);
+            if(grid[x][y] == 1) { cellDraw(x,y); }
+        }
+    }
+}
+
+void gridDrawBorders(void) {
+    int tile = 3; 
+    for(int x = 1; x <= MAPW; x++) { 
+        SMS_setTileatXY(x,0,tile);
+        SMS_setTileatXY(x,23,tile);
+    }
+    for(int y = 0; y <= MAPH; y++) { 
+        SMS_setTileatXY(1,y,tile);
+        SMS_setTileatXY(31,y,tile);
+    }
+}
+
+void gridDrawCell(int x, int y) { 
+    int tile = bgGrid[x][y];
+    SMS_setTileatXY(x,y,tile);
+}
+
+void gridScan(void) {
+    for(int x = 2; x <= MAPW -1; x++) { 
+        for(int y = 1; y <= MAPH -1; y++) {
+            if(grid[x][y] != prevGenGrid[x][y]) {
+                if(grid[x][y] == 0) { gridDrawCell(x,y); }
+                if(grid[x][y] == 1) { cellDraw(x,y); }
             }
         }
     }
 }
 
+// cell functions //
 void cellDraw(int x, int y) {
     SMS_setTileatXY(x,y,TILE_CELL);
 }
@@ -140,7 +198,7 @@ int cellCheckNeighboor(int x, int y, int cellStatus) {
     int neighboors = 0;
 
     // Check line above cell //
-    if(x-1 >= 0 && y-1 >= 0 && grid[x-1][y-1] == 1) { neighboors += 1; }
+    /* if(x-1 >= 0 && y-1 >= 0 && grid[x-1][y-1] == 1) { neighboors += 1; }
     if(y-1 >= 0 && grid[x][y-1] == 1) { neighboors += 1; }
     if(x + 1 <= MAPW && y-1 >= 0 && grid[x+1][y-1] == 1 ) { neighboors += 1; }
     
@@ -151,7 +209,20 @@ int cellCheckNeighboor(int x, int y, int cellStatus) {
     //Check line below cell //
     if(x-1 >= 0 && y + 1 <= MAPH && grid[x-1][y+1] == 1) { neighboors += 1; }
     if(y+1 <= MAPH && grid[x][y+1] == 1) { neighboors += 1; }
-    if(x+1 <= MAPW && y+1 <= MAPH && grid[x+1][y+1] == 1) {neighboors += 1; }
+    if(x+1 <= MAPW && y+1 <= MAPH && grid[x+1][y+1] == 1) {neighboors += 1; } */
+
+    if(grid[x-1][y-1] == 1) { neighboors += 1; }
+    if(grid[x][y-1] == 1) { neighboors += 1; }
+    if(grid[x+1][y-1] == 1 ) { neighboors += 1; }
+    
+    // Check left / right of the cell //
+    if(grid[x-1][y] == 1) { neighboors += 1; }
+    if(grid[x+1][y] == 1) { neighboors += 1; }
+
+    //Check line below cell //
+    if(grid[x-1][y+1] == 1) { neighboors += 1; }
+    if(grid[x][y+1] == 1) { neighboors += 1; }
+    if(grid[x+1][y+1] == 1) {neighboors += 1; }
 
     // Rules that Apply for a Living Cell //
     if(cellStatus == 1) {
@@ -187,13 +258,14 @@ void generationProc(void) {
     int cellStatus = 0;
     gen += 1;
 
-    for(int x = 0; x <= MAPW; x++) { 
-        for(int y = 0; y <= MAPH; y++) { 
+    for(int x = 2; x <= MAPW -1 ; x++) { 
+        for(int y = 1; y <= MAPH - 1; y++) { 
             cellStatus = grid[x][y];
             live = cellCheckNeighboor(x,y,cellStatus);
             newGenGrid[x][y] = live;
         }
     }
+    memcpy(prevGenGrid, grid, sizeof(grid));
     memcpy(grid, newGenGrid, sizeof(grid));
 }
 
@@ -211,7 +283,6 @@ void controllerCheck(void) {
     if(gamestate == 0) { 
         if(key & PORT_A_KEY_1)	{
             srand(randomSeed);
-            gridInit();
             newstate = 1;
             gamestate = 1;
             return;
@@ -232,7 +303,7 @@ void controllerCheck(void) {
             }
         }
         if(keyp & PORT_A_KEY_RIGHT) {
-            if(op.screenIndex == 0 && op.pattern < 2) { 
+            if(op.screenIndex == 0 && op.pattern < PATTERN_TOTAL) { 
                 op.pattern += 1;
             }
             if(op.screenIndex == 1 && op.autogen < 2) { 
@@ -245,7 +316,7 @@ void controllerCheck(void) {
     if(gamestate == 1) { 
         if(key & PORT_A_KEY_1 && op.autogen == 0)	{ 
             generationProc();
-            gridDraw();
+            //gridDrawFull();
         }
 
         if(key & PORT_A_KEY_2) {
@@ -285,7 +356,7 @@ void titleScreenRender(void) {
     SMS_printatXY(10,10,"PRESS 1");
 
     SMS_printatXY(5,20, "PATTERN:");
-    SMS_printatXY(5,22, "AUTOGEN:");
+    SMS_printatXY(5,22, "MODE:");
 
     if(op.pattern == 0) { 
         SMS_printatXY(15,20,"RANDOM"); 
@@ -296,7 +367,7 @@ void titleScreenRender(void) {
     }
 
     if(op.autogen == 0) { 
-        SMS_printatXY(15,22,"NO  ");
+        SMS_printatXY(15,22,"STEP");
     } else { 
         SMS_printatXY(15,22,"AUTO");
     }
@@ -328,6 +399,9 @@ void main(void) {
     gamestate = 0;
     newstate = 1;
 
+    gridGen();
+    
+
     while(true) {
 
         // Title Screen //
@@ -348,8 +422,9 @@ void main(void) {
         // Main Cells View //
         if(gamestate == 1) { 
             if(newstate == 1) {
+                if(gen == 0) { gridInit(op.pattern); }
                 bgLoad();
-                gridDraw();
+                gridDrawFull();
                 newstate = 0;
             }
             controllerCheck(); // Call generationProc() if button pressed is A //
@@ -357,10 +432,10 @@ void main(void) {
             //autoge is on //
             if(op.autogen == 1) { 
                 generationProc();
-                gridDraw();
+                //gridDrawFull();
             }
 
-            cellScanGrid();
+            gridScan();
             SMS_waitForVBlank();
         }
 
@@ -375,7 +450,7 @@ void main(void) {
             controllerCheck();
             aliveNum = cellCountAlive();
             statsRender(aliveNum);
-            SMS_waitForVBlank();
+            //SMS_waitForVBlank();
             //SMS_copySpritestoSAT();
         }
     }

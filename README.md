@@ -44,13 +44,22 @@ And then each generation is calculated as such:
 - 4 major conditions implemented;
 - Basic Stats Screen;
 
+### Preset Patterns 
+- 0: Random cells across the screen
+- 1: Blinker (2 period oscillator)
+- 2: Glider (Glider diagonal down)
+
+
 ## Todo
 - Title Screen;
 - Music;
-- More Stats;
-- Pattern Selection;
+- Small HUD;
 
-## Version History 
+## Version History
+### 20260714
+- Changed gridDraw to be gridGen and a split gridDraw into gridDrawCell and gridDrawFull, also created gridDrawBorders, this way, i can keep a map of the tiles in the checkerboard, and won't need to update the entire board each new generation, only the tiles are were occupied, but are now dead. Did a test and it is indeed faster, even if ram usage is larger.
+- Added first 2 preset patterns.
+
 ### 20260714 
 - Added preliminary title/options screen;
 - Added new font "outrunner" from DamienG; 
