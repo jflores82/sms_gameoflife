@@ -19,9 +19,7 @@ Otherwise you might need to execute the commands yourself.
 ![TitleScreen](http://classicgames.com.br/temp/gameoflife1.png)
 
 ## Controls 
-Button 1 - Next Generation - hold for animations;
-
-Button 2 - Status (press 2 again to go back to "cell view");
+Button 1 - in STEP mode: Next Generation - hold for animations;
 
 ## What is "Game of Life" ?
 Game of Life (GoL) is a celullar automaton, zero-player game, developed by mathematian John Conway in 1970. The algorithm requires no proper input from the player, with the initial state determining how the game will evolve. 
@@ -48,15 +46,25 @@ And then each generation is calculated as such:
 - 0: Random cells across the screen
 - 1: Blinker (2 period oscillator)
 - 2: Glider (Glider diagonal down)
-
+- 3: Pulsar (3 period oscillator)
+- 4: BeeHive (Still Life)
+- 5: Toad (2 periodo oscillator)
+- 6 : Pulsar Cousin (15 period oscillator)
+- 7 : LWSS (Light Weight Spaceship)
+- 8 : DieHard (dies in 130 generations)
 
 ## Todo
-- Title Screen;
 - Music;
-- Small HUD;
+- EDIT Mode
 
 ## Version History
-### 20260714
+### 20260716
+- Changed a bunch of unneeded ints to chars (and unsigned chars).
+- added several preset patterns.
+- added simple hud
+- removed "stats screen".
+
+### 20260715
 - Changed gridDraw to be gridGen and a split gridDraw into gridDrawCell and gridDrawFull, also created gridDrawBorders, this way, i can keep a map of the tiles in the checkerboard, and won't need to update the entire board each new generation, only the tiles are were occupied, but are now dead. Did a test and it is indeed faster, even if ram usage is larger.
 - Added first 2 preset patterns.
 

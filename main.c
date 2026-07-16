@@ -29,14 +29,14 @@
 #define TILE_BG_DARK 1
 #define TILE_BG_LIGHT 2
 #define TILE_BLANK 16
-#define PATTERN_TOTAL 2
+
 unsigned char grid[32][24];
 unsigned char newGenGrid[32][24];
 unsigned char prevGenGrid[32][24];
 unsigned char bgGrid[32][24];
 char buffer[8];
-int newstate = 0;
-int gamestate = 1;
+unsigned char newstate = 0;
+unsigned char gamestate = 1;
 int gen = 0;
 int aliveNum = 0;
 unsigned int randomSeed = 0;
@@ -50,28 +50,34 @@ options op;
 
 // Functions Prototypes //
 int rand_num(int lb, int ub);
-void fontLoad(int bg0, int bg1);
+void fontLoad(unsigned char bg0, unsigned char bg1);
+void fontSpriteLoad(unsigned char bg0, unsigned char bg1);
 //void spriteLoad(void);
 void bgLoad(void);
 void bgBlank(void);
 
-void gridInit(int pattern);
+void gridInit(unsigned char pattern);
 void gridGen(void);
 void gridDrawFull(void);
-void gridDrawCell(int x, int y);
+void gridDrawCell(unsigned char x, unsigned char y);
 void gridScan(void);
 void gridDrawBorders(void);
 
-void cellDraw(int x, int y);
-int  cellCheckNeighboor(int x, int y, int cellStatus);
+void cellDraw(unsigned char x, unsigned char y);
+int  cellCheckNeighboor(unsigned char x, unsigned char y, unsigned char cellStatus);
 int  cellCountAlive(void);
 
 void generationProc(void);
 
+
+
 void controllerCheck(void);
 
-void statsRender(int alive);
+void statsRender(unsigned char alive);
 void titleScreenRender(void);
+void hudDraw(void);
+
+#define PATTERN_TOTAL 9
 
 // sprite stuff //
 /*void spriteLoad(void) {
@@ -85,6 +91,7 @@ void bgLoad(void) {
     SMS_loadBGPalette(spr_tiles_bin);
 }
 
+
 void bgBlank(void) { 
     for(int x = 0; x <= MAPW; x++) {
         for(int y = 0; y <= MAPH; y++) { 
@@ -93,23 +100,30 @@ void bgBlank(void) {
     }
 }
 
-void fontLoad(int bg0, int bg1) { 
+void fontLoad(unsigned char bg0, unsigned char bg1) { 
     SMS_setBGPaletteColor(0, bg0);
     SMS_setBGPaletteColor(1, bg1);
     SMS_loadPSGaidencompressedTiles(outrunner_font_psgcompr, 128);
     SMS_configureTextRenderer(96);
 }
 
+void fontSpriteLoad(unsigned char bg0, unsigned char bg1) { 
+    SMS_setSpritePaletteColor(0, bg0);
+    SMS_setSpritePaletteColor(1, bg1);
+    SMS_loadPSGaidencompressedTiles(outrunner_font_psgcompr, 255);
+    SMS_configureTextRenderer(223);
+}
+
 // grid functions //
-void gridInit(int pattern) {
+void gridInit(unsigned char pattern) {
 
     // half: x:15 / y:11 //
 
     // random //
     if(pattern == 0) { 
-        int cell = 0;
-        for(int x = 2; x <= MAPW - 1; x++) { 
-            for(int y = 1; y <= MAPH - 1; y++) { 
+        unsigned char cell = 0;
+        for(unsigned char x = 2; x <= MAPW - 1; x++) { 
+            for(unsigned char y = 1; y <= MAPH - 1; y++) { 
                 cell = rand_num(1,5);
                 if(cell == 1) { 
                     grid[x][y] = 1;
@@ -134,13 +148,169 @@ void gridInit(int pattern) {
         grid[4][3] = 1;
     }
 
+    // pulsar //
+    if(pattern == 3) { 
+        grid[10][6] = 1;
+        grid[11][6] = 1;
+        grid[12][6] = 1;
+
+        grid[16][6] = 1;
+        grid[17][6] = 1;
+        grid[18][6] = 1;
+
+        grid[8][8] = 1;
+        grid[13][8] = 1;
+        grid[15][8] = 1;
+        grid[20][8] = 1;
+
+        grid[8][9] = 1;
+        grid[13][9] = 1;
+        grid[15][9] = 1;
+        grid[20][9] = 1;
+
+        grid[8][10] = 1;
+        grid[13][10] = 1;
+        grid[15][10] = 1;
+        grid[20][10] = 1;
+
+        grid[10][11] = 1;
+        grid[11][11] = 1;
+        grid[12][11] = 1;
+
+        grid[16][11] = 1;
+        grid[17][11] = 1;
+        grid[18][11] = 1;
+
+        grid[10][11] = 1;
+        grid[11][11] = 1;
+        grid[12][11] = 1;
+
+        grid[16][11] = 1;
+        grid[17][11] = 1;
+        grid[18][11] = 1;
+
+        grid[10][13] = 1;
+        grid[11][13] = 1;
+        grid[12][13] = 1;
+
+        grid[16][13] = 1;
+        grid[17][13] = 1;
+        grid[18][13] = 1;
+
+        grid[8][14] = 1;
+        grid[13][14] = 1;
+        grid[15][14] = 1;
+        grid[20][14] = 1;
+
+        grid[8][15] = 1;
+        grid[13][15] = 1;
+        grid[15][15] = 1;
+        grid[20][15] = 1;
+
+        grid[8][16] = 1;
+        grid[13][16] = 1;
+        grid[15][16] = 1;
+        grid[20][16] = 1;
+
+        grid[10][18] = 1;
+        grid[11][18] = 1;
+        grid[12][18] = 1;
+
+        grid[16][18] = 1;
+        grid[17][18] = 1;
+        grid[18][18] = 1;
+
+        grid[10][18] = 1;
+        grid[11][18] = 1;
+        grid[12][18] = 1;
+
+        grid[16][18] = 1;
+        grid[17][18] = 1;
+        grid[18][18] = 1;
+    }
+
+    // bee hive //
+    if(pattern == 4) { 
+        grid[11][10] = 1;
+        grid[12][10] = 1;
+        grid[10][11] = 1;
+        grid[13][11] = 1;
+        grid[11][12] = 1;
+        grid[12][12] = 1;
+    }
+
+    // Toad //
+    if(pattern == 5) {
+        grid[11][10] = 1;
+        grid[12][10] = 1;
+        grid[13][10] = 1;
+        grid[10][11] = 1;
+        grid[11][11] = 1;
+        grid[12][11] = 1;
+    }
+
+    // Pulsar Cousin //
+    if(pattern == 6) { 
+        grid[12][8] = 1;
+        grid[17][8] = 1;
+        grid[12][10] = 1;
+        grid[17][10] = 1;
+
+        grid[10][9] = 1;
+        grid[11][9] = 1;
+        grid[13][9] = 1;
+        grid[14][9] = 1;
+        grid[15][9] = 1;
+        grid[16][9] = 1;
+        grid[18][9] = 1;
+        grid[19][9] = 1;
+
+    }
+
+    //LWSS - Light Weight Space Ship //
+    if(pattern == 7) { 
+        grid[27][10] = 1;
+        grid[30][10] = 1;
+        grid[26][11] = 1;
+        grid[26][12] = 1;
+        grid[30][12] = 1;
+        grid[26][13] = 1;
+        grid[27][13] = 1;
+        grid[28][13] = 1;
+        grid[29][13] = 1;
+    }
+
+    //DieHard//
+    if(pattern == 8) { 
+        grid[16][10] = 1;
+
+        grid[10][11] = 1;
+        grid[11][11] = 1;
+
+        grid[11][12] = 1;
+        grid[15][12] = 1;
+        grid[16][12] = 1;
+        grid[17][12] = 1;
+    }
+
+    //r-pantomino//
+    if(pattern == 9) {
+        grid[6][5] = 1;
+        grid[7][5] = 1;
+
+        grid[5][6] = 1;
+        grid[6][6] = 1;
+
+        grid[6][7] = 1;
+    }
+
 }
 
 void gridGen(void) {
-    int i = TILE_BG_DARK;
-    for(int x = 2; x <= MAPW -1; x++) {
+    unsigned char i = TILE_BG_DARK;
+    for(unsigned char x = 2; x <= MAPW -1; x++) {
         if(x % 2 == 0) { i = TILE_BG_LIGHT; } else { i = TILE_BG_DARK; }
-        for(int y = 1; y <= MAPH -1; y++) {
+        for(unsigned char y = 1; y <= MAPH -1; y++) {
             //SMS_setTileatXY(x,y,i);
             bgGrid[x][y] = i;
             i++;
@@ -151,9 +321,9 @@ void gridGen(void) {
 
 void gridDrawFull(void) { 
     gridDrawBorders();
-    for(int x = 2; x <= MAPW - 1; x++) {
-        for(int y = 1; y <= MAPH - 1; y++) {
-            int tile = bgGrid[x][y];
+    for(unsigned char x = 2; x <= MAPW - 1; x++) {
+        for(unsigned char y = 1; y <= MAPH - 1; y++) {
+            unsigned char tile = bgGrid[x][y];
             SMS_setTileatXY(x,y, tile);
             if(grid[x][y] == 1) { cellDraw(x,y); }
         }
@@ -161,25 +331,25 @@ void gridDrawFull(void) {
 }
 
 void gridDrawBorders(void) {
-    int tile = 3; 
-    for(int x = 1; x <= MAPW; x++) { 
+    unsigned char tile = 3; 
+    for(unsigned char x = 1; x <= MAPW; x++) { 
         SMS_setTileatXY(x,0,tile);
         SMS_setTileatXY(x,23,tile);
     }
-    for(int y = 0; y <= MAPH; y++) { 
+    for(unsigned char y = 0; y <= MAPH; y++) { 
         SMS_setTileatXY(1,y,tile);
         SMS_setTileatXY(31,y,tile);
     }
 }
 
-void gridDrawCell(int x, int y) { 
-    int tile = bgGrid[x][y];
+void gridDrawCell(unsigned char x, unsigned char y) { 
+    unsigned char tile = bgGrid[x][y];
     SMS_setTileatXY(x,y,tile);
 }
 
 void gridScan(void) {
-    for(int x = 2; x <= MAPW -1; x++) { 
-        for(int y = 1; y <= MAPH -1; y++) {
+    for(unsigned char x = 2; x <= MAPW -1; x++) { 
+        for(unsigned char y = 1; y <= MAPH -1; y++) {
             if(grid[x][y] != prevGenGrid[x][y]) {
                 if(grid[x][y] == 0) { gridDrawCell(x,y); }
                 if(grid[x][y] == 1) { cellDraw(x,y); }
@@ -189,11 +359,11 @@ void gridScan(void) {
 }
 
 // cell functions //
-void cellDraw(int x, int y) {
+void cellDraw(unsigned char x, unsigned char y) {
     SMS_setTileatXY(x,y,TILE_CELL);
 }
 
-int cellCheckNeighboor(int x, int y, int cellStatus) { 
+int cellCheckNeighboor(unsigned char x, unsigned char y, unsigned char cellStatus) { 
     int alive = 0;
     int neighboors = 0;
 
@@ -242,9 +412,9 @@ int cellCheckNeighboor(int x, int y, int cellStatus) {
 }
 
 int cellCountAlive(void) { 
-    int alive = 0;
-    for(int x = 0; x <= MAPW; x++) { 
-        for(int y = 0; y <= MAPH; y++) { 
+    unsigned char alive = 0;
+    for(unsigned char x = 0; x <= MAPW; x++) { 
+        for(unsigned char y = 0; y <= MAPH; y++) { 
             if(grid[x][y] != 0) { 
                 alive += 1;
             }
@@ -254,12 +424,12 @@ int cellCountAlive(void) {
 }
 
 void generationProc(void) { 
-    int live = 0;
-    int cellStatus = 0;
+    unsigned char live = 0;
+    unsigned char cellStatus = 0;
     gen += 1;
 
-    for(int x = 2; x <= MAPW -1 ; x++) { 
-        for(int y = 1; y <= MAPH - 1; y++) { 
+    for(unsigned char x = 2; x <= MAPW -1 ; x++) { 
+        for(unsigned char y = 1; y <= MAPH - 1; y++) { 
             cellStatus = grid[x][y];
             live = cellCheckNeighboor(x,y,cellStatus);
             newGenGrid[x][y] = live;
@@ -326,18 +496,19 @@ void controllerCheck(void) {
         }
     }
 
-    // stats view // 
+    // stats view //
+    /* 
     if(gamestate == 2) { 
         if(key & PORT_A_KEY_2) { 
             newstate = 1;
             gamestate = 1;
             return;
         }
-    }
+    } */
 }
 
 // Stats Screens //
-void statsRender(int alive) {
+void statsRender(unsigned char alive) {
     SMS_printatXY(4,4,"Generations:");
     sprintf(buffer, "%u", gen);
     SMS_printatXY(20,4, buffer);
@@ -346,11 +517,10 @@ void statsRender(int alive) {
     SMS_printatXY(20,6, buffer);
 }
 
-
 // title screen render // 
 void titleScreenRender(void) { 
-    int cursorY = 20;
-    int cursorBlank = 22;
+    unsigned char cursorY = 20;
+    unsigned char cursorBlank = 22;
 
     SMS_printatXY(10,8,"GAME OF LIFE");
     SMS_printatXY(10,10,"PRESS 1");
@@ -382,6 +552,19 @@ void titleScreenRender(void) {
     if(randomSeed > 65000) { randomSeed = 0; }
 }
 
+// hud //
+void hudDraw(void) { 
+    unsigned char population;
+    population = cellCountAlive();
+    
+    SMS_printatXY(2,23,"GEN:");
+    sprintf(buffer, "%u", gen);
+    SMS_printatXY(7,23, buffer);
+
+    SMS_printatXY(12,23,"CELLS:");
+    sprintf(buffer, "%u", population);
+    SMS_printatXY(18,23, buffer);
+}
 
 // misc functions //
 int rand_num(int lb, int ub) {
@@ -401,6 +584,7 @@ void main(void) {
 
     gridGen();
     
+    
 
     while(true) {
 
@@ -408,7 +592,7 @@ void main(void) {
         if(gamestate == 0) { 
             if(newstate == 1) {
                 bgBlank();
-                fontLoad(0, 45); 
+                fontLoad(0, 45);
                 op.screenIndex = 0;
                 op.pattern = 0;
                 op.autogen = 0;
@@ -423,6 +607,7 @@ void main(void) {
         if(gamestate == 1) { 
             if(newstate == 1) {
                 if(gen == 0) { gridInit(op.pattern); }
+                fontLoad(0,1);
                 bgLoad();
                 gridDrawFull();
                 newstate = 0;
@@ -436,6 +621,7 @@ void main(void) {
             }
 
             gridScan();
+            hudDraw();
             SMS_waitForVBlank();
         }
 
