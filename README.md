@@ -19,7 +19,10 @@ Otherwise you might need to execute the commands yourself.
 ![TitleScreen](http://classicgames.com.br/temp/gameoflife1.png)
 
 ## Controls 
-Button 1 - in STEP mode: Next Generation - hold for animations;
+To select CUSTOM / EDIT mode, select Pattern 12 (CUSTOM), autoGen is disabled for CUSTOM.
+Button 1 - in STEP or CUSTOM mode: Next Generation - hold for animations;
+Button 2 - in CUSTOM mode only: Place / Remove Cell under the cursor.
+D-Pad - in CUSTOM mode only: move the cursor.
 
 ## What is "Game of Life" ?
 Game of Life (GoL) is a celullar automaton, zero-player game, developed by mathematian John Conway in 1970. The algorithm requires no proper input from the player, with the initial state determining how the game will evolve. 
@@ -40,24 +43,36 @@ And then each generation is calculated as such:
 - 32 x 24 (768) grid;
 - Sonic-like Graphics;
 - 4 major conditions implemented;
-- Basic Stats Screen;
+- CUSTOM mode, allows player to draw directly on the grid on any genenation;
 
 ### Preset Patterns 
-- 0: Random cells across the screen
-- 1: Blinker (2 period oscillator)
-- 2: Glider (Glider diagonal down)
-- 3: Pulsar (3 period oscillator)
-- 4: BeeHive (Still Life)
-- 5: Toad (2 periodo oscillator)
+- 0 : Random cells across the screen
+- 1 : Blinker (2 period oscillator)
+- 2 : Glider (Glider diagonal down)
+- 3 : Pulsar (3 period oscillator)
+- 4 : BeeHive (Still Life)
+- 5 : Toad (2 periodo oscillator)
 - 6 : Pulsar Cousin (15 period oscillator)
 - 7 : LWSS (Light Weight Spaceship)
-- 8 : DieHard (dies in 130 generations)
+- 8 : DieHard (dies in 150 generations)
+- 9 : R-Pantomino (Chaotic Evolution)
+- 10: Acorn (Chaotic Evolution)
+- 11: B-Hexomino (Chaotic Evolution)
+- 12: Custom (You create the pattern)
 
 ## Todo
 - Music;
-- EDIT Mode
+- Fix cursor graphic;
 
 ## Version History
+### 20260717
+- added acorn and b-hexomino patterns.
+- changed menu to accomodate EDIT/CUSTOM mode.
+- added spriteLoad(), spriteDraw() to load a cursor for CUSTOM mode.
+- added controls into controllerCheck().
+- cursor is moving correctly.
+- adding / removing cells is adding / removing of the grid, correctly.
+
 ### 20260716
 - Changed a bunch of unneeded ints to chars (and unsigned chars).
 - added several preset patterns.

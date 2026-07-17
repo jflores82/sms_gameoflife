@@ -29,6 +29,7 @@
 #define TILE_BG_DARK 1
 #define TILE_BG_LIGHT 2
 #define TILE_BLANK 16
+#define CURSOR_SPRITE 256
 
 unsigned char grid[32][24];
 unsigned char newGenGrid[32][24];
@@ -41,6 +42,12 @@ int gen = 0;
 int aliveNum = 0;
 unsigned int randomSeed = 0;
 
+typedef struct { 
+    unsigned char x;
+    unsigned char y;
+} sprite;
+sprite spr;
+
 typedef struct {
     unsigned char screenIndex;
     unsigned char pattern;
@@ -52,7 +59,8 @@ options op;
 int rand_num(int lb, int ub);
 void fontLoad(unsigned char bg0, unsigned char bg1);
 void fontSpriteLoad(unsigned char bg0, unsigned char bg1);
-//void spriteLoad(void);
+void spriteLoad(void);
+void spriteDraw(void);
 void bgLoad(void);
 void bgBlank(void);
 
@@ -66,10 +74,9 @@ void gridDrawBorders(void);
 void cellDraw(unsigned char x, unsigned char y);
 int  cellCheckNeighboor(unsigned char x, unsigned char y, unsigned char cellStatus);
 int  cellCountAlive(void);
+void cellPlaceRemove(void);
 
 void generationProc(void);
-
-
 
 void controllerCheck(void);
 
@@ -77,14 +84,20 @@ void statsRender(unsigned char alive);
 void titleScreenRender(void);
 void hudDraw(void);
 
-#define PATTERN_TOTAL 9
+#define PATTERN_TOTAL 12
 
 // sprite stuff //
-/*void spriteLoad(void) {
-    SMS_loadPSGaidencompressedTiles(spr_tiles_psgcompr, 256);
-	SMS_loadSpritePalette(spr_tiles_bin);
+void spriteLoad(void) {
+    spr.x = 15;
+    spr.y = 11;
+    SMS_loadPSGaidencompressedTiles(spr_sprites_psgcompr, 256);
+	SMS_loadSpritePalette(spr_sprites_bin);
     return;
-} */
+}
+
+void spriteDraw(void) { 
+    SMS_addSprite(spr.x * 8, spr.y * 8, CURSOR_SPRITE);
+}
 
 void bgLoad(void) {
     SMS_loadPSGaidencompressedTiles(spr_tiles_psgcompr, 0);
@@ -255,7 +268,6 @@ void gridInit(unsigned char pattern) {
         grid[17][8] = 1;
         grid[12][10] = 1;
         grid[17][10] = 1;
-
         grid[10][9] = 1;
         grid[11][9] = 1;
         grid[13][9] = 1;
@@ -283,10 +295,8 @@ void gridInit(unsigned char pattern) {
     //DieHard//
     if(pattern == 8) { 
         grid[16][10] = 1;
-
         grid[10][11] = 1;
         grid[11][11] = 1;
-
         grid[11][12] = 1;
         grid[15][12] = 1;
         grid[16][12] = 1;
@@ -297,13 +307,31 @@ void gridInit(unsigned char pattern) {
     if(pattern == 9) {
         grid[6][5] = 1;
         grid[7][5] = 1;
-
         grid[5][6] = 1;
         grid[6][6] = 1;
-
         grid[6][7] = 1;
     }
 
+    // acorn //
+    if(pattern == 10) { 
+        grid[11][7] = 1;
+        grid[13][8] = 1;
+        grid[10][9] = 1;
+        grid[11][9] = 1;
+        grid[14][9] = 1;
+        grid[15][9] = 1;
+        grid[16][9] = 1;
+    }
+
+    // b-hexomino //
+    if(pattern == 11) { 
+        grid[12][8] = 1;
+        grid[13][8] = 1;
+        grid[13][9] = 1;
+        grid[14][9] = 1;
+        grid[12][10] = 1;
+        grid[13][10] = 1;
+    }
 }
 
 void gridGen(void) {
@@ -423,6 +451,24 @@ int cellCountAlive(void) {
     return alive;
 }
 
+void cellPlaceRemove(void) { 
+    unsigned char current;
+
+    current = grid[spr.x][spr.y];
+    prevGenGrid[spr.x][spr.y] = current;
+    
+    if(current == 0) {
+        grid[spr.x][spr.y] = 1;
+        SMS_debugPrintf("c=0 - x: %u - y: %u - cell:%u\n", spr.x, spr.y, grid[spr.x][spr.y]);
+        return;
+    }
+    if(current == 1) {
+        grid[spr.x][spr.y] = 0;
+        SMS_debugPrintf("c=1 - x: %u - y: %u - cell:%u\n", spr.x, spr.y, grid[spr.x][spr.y]); 
+        return;
+    }
+}
+
 void generationProc(void) { 
     unsigned char live = 0;
     unsigned char cellStatus = 0;
@@ -452,10 +498,16 @@ void controllerCheck(void) {
     // title screen //
     if(gamestate == 0) { 
         if(key & PORT_A_KEY_1)	{
-            srand(randomSeed);
-            newstate = 1;
-            gamestate = 1;
-            return;
+            if(op.pattern == 12) { 
+                newstate = 1;
+                gamestate = 2;
+                return;
+            } else { 
+                srand(randomSeed);
+                newstate = 1;
+                gamestate = 1;
+                return;
+            }
         }
 
         if(keyp & PORT_A_KEY_DOWN) { 
@@ -496,15 +548,35 @@ void controllerCheck(void) {
         }
     }
 
-    // stats view //
-    /* 
-    if(gamestate == 2) { 
-        if(key & PORT_A_KEY_2) { 
-            newstate = 1;
-            gamestate = 1;
+    // custom mode //
+    if(gamestate == 2) {
+        //SMS_debugPrintf("x: %u - y: %u\n", spr.x, spr.y);
+        if(key & PORT_A_KEY_1) { 
+            generationProc();
+            gridScan();
+            hudDraw();
+            return;
+        } 
+        if(keyp & PORT_A_KEY_2) { 
+            cellPlaceRemove();
+            gridScan();
+            hudDraw();
             return;
         }
-    } */
+
+        if(keyp & PORT_A_KEY_DOWN) { 
+            if(spr.y < MAPH - 1) { spr.y += 1; }
+        }
+        if(keyp & PORT_A_KEY_UP) { 
+            if(spr.y > 1) { spr.y -= 1; }
+        }
+        if(keyp & PORT_A_KEY_LEFT) { 
+            if(spr.x > 2) { spr.x -= 1; }
+        }
+        if(keyp & PORT_A_KEY_RIGHT) { 
+            if(spr.x < MAPW - 1) { spr.x += 1; }
+        }
+    } 
 }
 
 // Stats Screens //
@@ -530,6 +602,9 @@ void titleScreenRender(void) {
 
     if(op.pattern == 0) { 
         SMS_printatXY(15,20,"RANDOM"); 
+    } 
+    if(op.pattern == 12) { 
+        SMS_printatXY(15,20,"CUSTOM");
     } else { 
         SMS_printatXY(15,20,"      ");
         sprintf(buffer, "%u", op.pattern);
@@ -625,19 +700,21 @@ void main(void) {
             SMS_waitForVBlank();
         }
 
-        // Stats Screen //
+        // CUSTOM mode //
         if(gamestate == 2) { 
             if(newstate == 1) { 
-                bgBlank();
-                fontLoad(0,15);
+                fontLoad(0,1);
+                spriteLoad();
+                bgLoad();
+                gridDrawFull();
                 newstate = 0;
             }
-            //SMS_initSprites();
+            SMS_initSprites();
             controllerCheck();
-            aliveNum = cellCountAlive();
-            statsRender(aliveNum);
-            //SMS_waitForVBlank();
-            //SMS_copySpritestoSAT();
+            spriteDraw();
+                        
+            SMS_waitForVBlank();
+            SMS_copySpritestoSAT();
         }
     }
 }
