@@ -511,40 +511,47 @@ void controllerCheck(void) {
         }
 
         if(keyp & PORT_A_KEY_DOWN) { 
-            if(op.screenIndex < 1) { op.screenIndex += 1; }
+            if(op.screenIndex < 1) { 
+                op.screenIndex += 1;
+                PSGSFXPlay(sfx_cur1_psg, SFX_CHANNEL2);
+            }
         }
         if(keyp & PORT_A_KEY_UP) { 
-            if(op.screenIndex > 0) { op.screenIndex -= 1; }
+            if(op.screenIndex > 0) { 
+                op.screenIndex -= 1;
+                PSGSFXPlay(sfx_cur1_psg, SFX_CHANNEL2); 
+            }
         }
         if(keyp & PORT_A_KEY_LEFT) { 
             if(op.screenIndex == 0 && op.pattern > 0) { 
                 op.pattern -= 1;
+                PSGSFXPlay(sfx_cur2_psg, SFX_CHANNEL2);
             }
             if(op.screenIndex == 1 && op.autogen > 0) { 
                 op.autogen -= 1;
+                PSGSFXPlay(sfx_cur2_psg, SFX_CHANNEL2);
             }
         }
         if(keyp & PORT_A_KEY_RIGHT) {
             if(op.screenIndex == 0 && op.pattern < PATTERN_TOTAL) { 
                 op.pattern += 1;
+                PSGSFXPlay(sfx_cur2_psg, SFX_CHANNEL2);
             }
             if(op.screenIndex == 1 && op.autogen < 2) { 
                 op.autogen += 1;
+                PSGSFXPlay(sfx_cur2_psg, SFX_CHANNEL2);
             }
         }
     }
 
     // cell view //
     if(gamestate == 1) { 
-        if(key & PORT_A_KEY_1 && op.autogen == 0)	{ 
+        if(key & PORT_A_KEY_1 && op.autogen == 0)	{
+            PSGSFXPlay(new_gen_psg, SFX_CHANNEL2); 
             generationProc();
+            gridScan();
+            hudDraw();
             //gridDrawFull();
-        }
-
-        if(key & PORT_A_KEY_2) {
-            newstate = 1;
-            gamestate = 2;
-            return;
         }
     }
 
@@ -552,6 +559,7 @@ void controllerCheck(void) {
     if(gamestate == 2) {
         //SMS_debugPrintf("x: %u - y: %u\n", spr.x, spr.y);
         if(key & PORT_A_KEY_1) { 
+            PSGSFXPlay(new_gen_psg, SFX_CHANNEL2); 
             generationProc();
             gridScan();
             hudDraw();
@@ -672,9 +680,13 @@ void main(void) {
                 op.pattern = 0;
                 op.autogen = 0;
                 newstate = 0;
+                PSGStop();
+                //PSGPlay(ghz_psg);
             }
             titleScreenRender();
             controllerCheck();
+            //PSGFrame();
+            PSGSFXFrame();
             SMS_waitForVBlank();
         }
 
@@ -689,14 +701,15 @@ void main(void) {
             }
             controllerCheck(); // Call generationProc() if button pressed is A //
 
-            //autoge is on //
+            //autogen is on //
             if(op.autogen == 1) { 
                 generationProc();
+                gridScan();
+                hudDraw();
                 //gridDrawFull();
             }
 
-            gridScan();
-            hudDraw();
+            PSGSFXFrame();
             SMS_waitForVBlank();
         }
 
@@ -712,7 +725,7 @@ void main(void) {
             SMS_initSprites();
             controllerCheck();
             spriteDraw();
-                        
+            PSGSFXFrame();
             SMS_waitForVBlank();
             SMS_copySpritestoSAT();
         }

@@ -62,9 +62,16 @@ And then each generation is calculated as such:
 
 ## Todo
 - Music;
-- Fix cursor graphic;
+- 1 Dimension Mode? (for fun)
 
 ## Version History
+### 20260720
+- fixed bug with the cursor colors (background was not mapped as palette index 0).
+- added menu sfx.
+- fixed bug, pressing 2 would throw the game into EDIT/CUSTOM mode at any time. (might be a feature? would anyone like that?)
+- added "new_gen" sfx. 
+- changed algorithm so the grid is only read when there's a need to process a new generation, not every frame.
+
 ### 20260717
 - added acorn and b-hexomino patterns.
 - changed menu to accomodate EDIT/CUSTOM mode.
