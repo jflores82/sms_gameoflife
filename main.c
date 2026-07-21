@@ -41,6 +41,7 @@ unsigned char gamestate = 1;
 int gen = 0;
 int aliveNum = 0;
 unsigned int randomSeed = 0;
+unsigned char oneY = 1;
 
 typedef struct { 
     unsigned char x;
@@ -75,8 +76,12 @@ void cellDraw(unsigned char x, unsigned char y);
 int  cellCheckNeighboor(unsigned char x, unsigned char y, unsigned char cellStatus);
 int  cellCountAlive(void);
 void cellPlaceRemove(void);
-
 void generationProc(void);
+
+void oneGridGen(void);
+void oneGenProc(void);
+void oneRender(void);
+void oneWrap(void);
 
 void controllerCheck(void);
 
@@ -84,7 +89,7 @@ void statsRender(unsigned char alive);
 void titleScreenRender(void);
 void hudDraw(void);
 
-#define PATTERN_TOTAL 12
+#define PATTERN_TOTAL 13
 
 // sprite stuff //
 void spriteLoad(void) {
@@ -485,6 +490,76 @@ void generationProc(void) {
     memcpy(grid, newGenGrid, sizeof(grid));
 }
 
+
+// One Dimension (1D) Mode // 
+void oneGridGen(void) {
+    unsigned char cell = 0; 
+    for(unsigned char x = 2; x <= MAPW -1; x++) { 
+        cell = rand_num(1,4);
+        if(cell == 1) { 
+            grid[x][oneY] = 1;
+        } else { 
+            grid[x][oneY] = 0;
+        }
+    }
+}
+
+void oneGenProc(void) { 
+    for(unsigned char x = 2; x <= MAPW -1; x++) {
+        unsigned char alive = 0;
+        unsigned char aliveNeighboors = 0;
+        unsigned char cell = 0;
+
+        cell = grid[x][oneY];
+
+        if(grid[x-2][oneY] == 1) { aliveNeighboors += 1; }
+        if(grid[x-1][oneY] == 1) { aliveNeighboors += 1; }
+        if(grid[x+1][oneY] == 1) { aliveNeighboors += 1; }
+        if(grid[x+2][oneY] == 1) { aliveNeighboors += 1; }
+
+        if(cell == 1) { 
+            if(cell + aliveNeighboors == 2) { alive = 1; }
+            if(cell + aliveNeighboors == 4) { alive = 1; }
+        }
+        //if(cell == 1 & aliveNeighboors == 2) { alive = 1; }
+        //if(cell == 1 & aliveNeighboors == 4) { alive = 1; }
+
+        if(cell == 0) { 
+            if(aliveNeighboors == 2 || aliveNeighboors == 3) { alive = 1; }
+        }
+        //if(cell == 0 & aliveNeighboors == 3) { alive = 1; }
+
+        newGenGrid[x][oneY+1] = alive;
+    }
+
+    memcpy(prevGenGrid, grid, sizeof(grid));
+    memcpy(grid, newGenGrid, sizeof(grid));
+    gen += 1;
+    oneY += 1;
+    if(oneY > 22) { 
+        oneWrap();
+    }
+}
+
+void oneRender(void) { 
+    for(unsigned char x = 2; x <= MAPW -1; x++) { 
+        if(grid[x][oneY] == 1) { cellDraw(x,oneY); }
+    }
+}
+
+void oneWrap(void) { 
+    oneY = 1;
+    memset(newGenGrid, 0, sizeof(newGenGrid));
+
+    for(unsigned char x = 2; x <= MAPW -1; x++) { 
+        newGenGrid[x][1] = grid[x][21];
+    }
+
+    memcpy(grid, newGenGrid, sizeof(grid));
+
+    gridDrawFull();
+}
+
 // controller Functions //
 void controllerCheck(void) { 
     unsigned int key=SMS_getKeysStatus();
@@ -501,6 +576,12 @@ void controllerCheck(void) {
             if(op.pattern == 12) { 
                 newstate = 1;
                 gamestate = 2;
+                return;
+            } 
+            if(op.pattern == 13) {
+                srand(randomSeed);
+                newstate = 1;
+                gamestate = 3;
                 return;
             } else { 
                 srand(randomSeed);
@@ -584,7 +665,15 @@ void controllerCheck(void) {
         if(keyp & PORT_A_KEY_RIGHT) { 
             if(spr.x < MAPW - 1) { spr.x += 1; }
         }
-    } 
+    }
+
+    if(gamestate == 3) { 
+        if(keyp & PORT_A_KEY_1) { 
+            oneGenProc();
+            oneRender();
+            hudDraw();
+        }
+    }
 }
 
 // Stats Screens //
@@ -602,6 +691,8 @@ void titleScreenRender(void) {
     unsigned char cursorY = 20;
     unsigned char cursorBlank = 22;
 
+    SMS_printatXY(9,1, "MADE BY TIBONEV");
+
     SMS_printatXY(10,8,"GAME OF LIFE");
     SMS_printatXY(10,10,"PRESS 1");
 
@@ -613,6 +704,9 @@ void titleScreenRender(void) {
     } 
     if(op.pattern == 12) { 
         SMS_printatXY(15,20,"CUSTOM");
+    } 
+    if(op.pattern == 13) { 
+        SMS_printatXY(15,20,"ONE D");
     } else { 
         SMS_printatXY(15,20,"      ");
         sprintf(buffer, "%u", op.pattern);
@@ -729,5 +823,34 @@ void main(void) {
             SMS_waitForVBlank();
             SMS_copySpritestoSAT();
         }
+
+        // ONE DIMENSION mode //
+        if(gamestate == 3) { 
+            if(newstate == 1) {
+                fontLoad(0,1);
+                bgLoad();
+                gridDrawFull();
+                oneGridGen();
+                oneRender();
+                hudDraw();
+                newstate = 0;
+            }
+
+            //autogen is on //
+            if(op.autogen == 1) { 
+                oneGenProc();
+                oneRender();
+                hudDraw();
+            } else { 
+                controllerCheck();
+            }
+            //controllerCheck();
+            
+            PSGSFXFrame();
+            SMS_waitForVBlank();
+        }
     }
 }
+
+SMS_EMBED_SEGA_ROM_HEADER(9999,0);
+SMS_EMBED_SDSC_HEADER_AUTO_DATE(0,5,"tibonev","game of life","Conways Game of Life");

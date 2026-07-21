@@ -17,6 +17,8 @@ Otherwise you might need to execute the commands yourself.
 
 ## ScreenShots 
 ![TitleScreen](http://classicgames.com.br/temp/gameoflife1.png)
+![Random](http://classicgames.com.br/temp/gameoflife2.png)
+![Random](http://classicgames.com.br/temp/gameoflife3.png)
 
 ## Controls 
 To select CUSTOM / EDIT mode, select Pattern 12 (CUSTOM), autoGen is disabled for CUSTOM.
@@ -39,11 +41,24 @@ And then each generation is calculated as such:
 - Any alive cell with more than 4 neighboors die by overpopulation.
 - Any dead cell with exactly 3 alive neighboors is alive by reproduction.
 
+### Bonus - One Dimension (1D) mode / rule set
+The 1D mode takes place on a single row/column, it was created as a subset algorithim for old machines using text-mode or with teletypes, popularized by Stephen Wolfram. 
+The ruleset says each cell can only be _alive_ or _dead_ without any intermediate state.
+Each cell state is only determined by a 5-neighboor population (the cell itself plus 2 neighboors to the left and 2 neighboors to the right).
+
+And then each generation is calculated as such:
+- Any alive cell with 2 or 4 neighboors survives.
+- Any alive cell with 3 neighboors dies.
+- Any dead cell with 2 or 3 neighboors becomes alive.
+
+I've implemented this as a bonus on this version, its not the main focus.
+
 ## Features
-- 32 x 24 (768) grid;
+- 30 x 22 (660 cells) grid;
 - Sonic-like Graphics;
 - 4 major conditions implemented;
 - CUSTOM mode, allows player to draw directly on the grid on any genenation;
+- SFX;
 
 ### Preset Patterns 
 - 0 : Random cells across the screen
@@ -62,9 +77,15 @@ And then each generation is calculated as such:
 
 ## Todo
 - Music;
-- 1 Dimension Mode? (for fun)
+- Linux build script;
+- Code Cleanup;
 
 ## Version History
+### 20260721
+- added ROM Headers to get the build released.
+- added 1D (One Dimension) Mode w/ vertical wrap
+- added my name on the title screen (how could i forget _that_ ?)
+
 ### 20260720
 - fixed bug with the cursor colors (background was not mapped as palette index 0).
 - added menu sfx.
