@@ -699,6 +699,10 @@ void titleScreenRender(void) {
     SMS_printatXY(5,20, "PATTERN:");
     SMS_printatXY(5,22, "MODE:");
 
+    SMS_printatXY(15,20,"      ");
+    sprintf(buffer, "%u", op.pattern);
+    SMS_printatXY(15,20, buffer);
+    
     if(op.pattern == 0) { 
         SMS_printatXY(15,20,"RANDOM"); 
     } 
@@ -707,11 +711,7 @@ void titleScreenRender(void) {
     } 
     if(op.pattern == 13) { 
         SMS_printatXY(15,20,"ONE D");
-    } else { 
-        SMS_printatXY(15,20,"      ");
-        sprintf(buffer, "%u", op.pattern);
-        SMS_printatXY(15,20, buffer);
-    }
+    } 
 
     if(op.autogen == 0) { 
         SMS_printatXY(15,22,"STEP");

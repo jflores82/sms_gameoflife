@@ -9,6 +9,8 @@ using the [SMSDevkit by sverx](https://github.com/sverx/devkitSMS)
 
 compiled using [SDCC](https://sdcc.sourceforge.net)
 
+web emulator version using [EmulatorJS](https://emulatorjs.org)
+
 This project is 100% human made, absolutely no AI of any kind was used for any part of the code, assets or documentation.
 
 ## Build from the Code
@@ -16,7 +18,7 @@ To build it, you need a working copy of SDCC and SMSDevkit, with crt0, lib(SMSli
 Otherwise you might need to execute the commands yourself.
 
 ## ScreenShots 
-![TitleScreen](http://classicgames.com.br/temp/gameoflife1.png)
+![TitleScreen](http://classicgames.com.br/temp/gameoflife0.png)
 ![Random](http://classicgames.com.br/temp/gameoflife2.png)
 ![Random](http://classicgames.com.br/temp/gameoflife3.png)
 
@@ -82,6 +84,7 @@ I've implemented this as a bonus on this version, its not the main focus.
 
 ## Version History
 ### 20260721
+- fixed bug with CUSTOM Mode showing as Pattern 12.
 - added ROM Headers to get the build released.
 - added 1D (One Dimension) Mode w/ vertical wrap
 - added my name on the title screen (how could i forget _that_ ?)
